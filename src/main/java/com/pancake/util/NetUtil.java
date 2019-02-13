@@ -4,6 +4,9 @@ package com.pancake.util;
 import com.pancake.entity.util.Const;
 import com.pancake.entity.util.NetAddress;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -71,5 +74,31 @@ public class NetUtil {
      */
     public static String getPrimaryNodUrl(){
         return getPrimaryNode().getIp() + ":" + getPrimaryNode().getPort();
+    }
+
+    /**
+     * 发送数据
+     * @param dataOutputStream
+     * @param msg
+     * @throws IOException
+     */
+    public static void write(DataOutputStream dataOutputStream, String msg) throws IOException {
+        byte[] msgBytes = msg.getBytes("UTF-8");
+        dataOutputStream.writeInt(msgBytes.length);
+        dataOutputStream.write(msgBytes);
+        dataOutputStream.flush();
+    }
+
+    /**
+     * 获取数据
+     * @param dataInputStream
+     * @return 以string 的方式返回
+     * @throws IOException
+     */
+    public static String read(DataInputStream dataInputStream) throws IOException {
+        int length = dataInputStream.readInt();
+        byte[] data = new byte[length];
+        dataInputStream.readFully(data);
+        return new String(data, "UTF-8");
     }
 }

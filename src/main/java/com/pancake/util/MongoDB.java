@@ -1,9 +1,6 @@
 package com.pancake.util;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.WriteConcern;
+import com.mongodb.*;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -78,7 +75,12 @@ public class MongoDB {
 
     public MongoDB(MongoDBConfig mongoDBConfig) {
         this.database = mongoDBConfig.getDatabase();
-        mongoClient = new MongoClient(mongoDBConfig.getIp(), mongoDBConfig.getPort());
+        ServerAddress serverAddress = new ServerAddress(mongoDBConfig.getIp(), mongoDBConfig.getPort());
+        MongoCredential credential = MongoCredential.createScramSha1Credential(mongoDBConfig.getUsername(),
+                mongoDBConfig.getDatabase(), mongoDBConfig.getPassword().toCharArray());
+        List<MongoCredential> credentials = new ArrayList<MongoCredential>();
+        credentials.add(credential);
+        mongoClient = new MongoClient(serverAddress, credentials);
         MongoClientOptions.Builder options = new MongoClientOptions.Builder();
         // options.autoConnectRetry(true);// 自动重连true
         // options.maxAutoConnectRetryTime(10); // the maximum auto connect retry time
@@ -90,6 +92,10 @@ public class MongoDB {
         options.writeConcern(WriteConcern.ACKNOWLEDGED);//
         options.build();
         mongoDatabase = mongoClient.getDatabase(database);
+    }
+
+    public MongoDatabase getMongoDatabase() {
+        return this.mongoDatabase;
     }
 
     public List<String> findByKVs(Map<String, Object> kvMap, String collectionName) {

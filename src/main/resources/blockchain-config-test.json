@@ -74,6 +74,8 @@
   "mongodb": {
     "ip": "127.0.0.1",
     "port": 27017,
+    "username" : "blockchain",
+    "password" : "zc-12332145",
     "database": "BlockChain"
   },
 

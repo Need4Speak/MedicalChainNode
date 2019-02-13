@@ -3,6 +3,7 @@ package com.pancake.service.component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pancake.entity.util.NetAddress;
 import com.pancake.util.JsonUtil;
+import com.pancake.util.NetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.pancake.entity.util.Const;
@@ -47,13 +48,14 @@ public class NetService {
             if (!((va.getIp().equals(ip) || va.getIp().equals("127.0.0.1")) && va.getPort() == localPort)) {
                 Socket broadcastSocket = new Socket(va.getIp(), va.getPort());
                 OutputStream outToServer = broadcastSocket.getOutputStream();
-                DataOutputStream outputStream = new DataOutputStream(outToServer);
-                logger.info("开始向 " + va.getIp() + ":" + va.getPort() + " 发送消息: " + msg);
-                outputStream.writeUTF(msg);
+                DataOutputStream dataOutputStream = new DataOutputStream(outToServer);
+                logger.info("开始向 " + va.getIp() + ":" + va.getPort() + " 发送消息: " + msg.split("\"")[3]);
+                NetUtil.write(dataOutputStream, msg);
+                broadcastSocket.shutdownOutput();
 
                 InputStream inFromServer = broadcastSocket.getInputStream();
-                DataInputStream inputStream = new DataInputStream(inFromServer);
-                String rcvMsg = inputStream.readUTF();
+                DataInputStream dataInputStream = new DataInputStream(inFromServer);
+                String rcvMsg = NetUtil.read(dataInputStream);
                 logger.info("服务器响应消息的结果为： " + rcvMsg);
 
                 broadcastSocket.close();
@@ -88,14 +90,14 @@ public class NetService {
         }
         try {
             OutputStream outToServer = client.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outToServer);
-            out.writeUTF(msg);
-            out.flush();
+            DataOutputStream dataOutputStream = new DataOutputStream(outToServer);
+            NetUtil.write(dataOutputStream, msg);
+            client.shutdownOutput();
             logger.info("完成写入");
 
             InputStream inFromServer = client.getInputStream();
-            DataInputStream in = new DataInputStream(inFromServer);
-            rcvMsg = in.readUTF();
+            DataInputStream dataInputStream = new DataInputStream(inFromServer);
+            rcvMsg = NetUtil.read(dataInputStream);
             logger.info("服务器响应： " + rcvMsg);
             client.close();
         } catch (IOException e) {

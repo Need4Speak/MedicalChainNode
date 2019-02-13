@@ -97,8 +97,8 @@ public class CommittedMessageService {
                     logger.info("交易 :" + txIdList + " 存入成功");
 
                     // 验证成功的 tx 发送到 blocker 服务器上
-                    TxIdMessage txIdMsg = timSrv.genInstance(txIdList, netAddress.getIp(), netAddress.getPort());
-                    netService.sendMsg(txIdMsg.toString(), blockerAddr.getIp(), blockerAddr.getPort());
+//                    TxIdMessage txIdMsg = timSrv.genInstance(txIdList, netAddress.getIp(), netAddress.getPort());
+//                    netService.sendMsg(txIdMsg.toString(), blockerAddr.getIp(), blockerAddr.getPort());
                 }
             } else {
                 logger.error("clientMessage的类型为：" + clientMessage.getClass().getSimpleName());

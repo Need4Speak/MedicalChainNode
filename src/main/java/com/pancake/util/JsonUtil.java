@@ -199,7 +199,8 @@ public class JsonUtil {
         String jsonStr = getStrByJsonFile(jsonFile);
         Map map = jsonToMap(jsonStr);
         Map pubMap = (HashMap) map.get("mongodb");
-        return new MongoDBConfig((String)pubMap.get("ip"), (Integer) pubMap.get("port"), (String)pubMap.get("database"));
+        return new MongoDBConfig((String)pubMap.get("ip"), (Integer) pubMap.get("port"),
+                (String)pubMap.get("username"), (String)pubMap.get("password"), (String)pubMap.get("database"));
     }
 
     /**

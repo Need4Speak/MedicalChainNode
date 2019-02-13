@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pancake.entity.util.Const;
 import com.pancake.entity.util.NetAddress;
 import com.pancake.service.message.impl.*;
+import com.pancake.util.NetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,20 +39,19 @@ public class ValidatorHandler implements Runnable {
         try {
             logger.info("远程主机地址：" + socket.getRemoteSocketAddress());
 
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            String rcvMsg = in.readUTF();
+            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+            String rcvMsg = NetUtil.read(dataInputStream);
             String msgType = (String) objectMapper.readValue(rcvMsg, Map.class).get("msgType");
             logger.debug("接收到的 Msg 类型为： [" + msgType + "]");
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 //            out.writeUTF("接收到你发来的消息");
 //            out.flush();
 //            socket.close();
 
             // 如果socket中接受到的消息为 blockMsg 类型
             if (msgType.equals(Const.BM)) {
-                out.writeUTF("接收到你发来的客户端 Block 消息，准备校验后广播预准备消息");
-                out.flush();
-                socket.close();
+                NetUtil.write(dataOutputStream, "接收到你发送 Block 消息");
+//                socket.close();
                 try {
                     BlockMessageService.procBlockMsg(rcvMsg, validatorAddr);
                 } catch (Exception e) {
@@ -59,44 +59,39 @@ public class ValidatorHandler implements Runnable {
                 }
             }
             else if(msgType.equals(Const.TXM)) {
-                out.writeUTF("接收到你发来的客户端 Transaction 消息，准备校验后广播预准备消息");
-                out.flush();
-                socket.close();
+                NetUtil.write(dataOutputStream, "接收到你发送的 Transaction 消息");
+//                socket.close();
                 TransactionMessageService.procTxMsg(rcvMsg, validatorAddr);
             }
             // 如果socket中接受到的消息为 PrePrepare 类型
             else if (msgType.equals(Const.PPM)) {
-                out.writeUTF("接收到你发来的预准备消息，准备校验后广播准备消息");
-                out.flush();
-                socket.close();
+                NetUtil.write(dataOutputStream, "接收到你发送的 PrePrepare 消息");
+//                socket.close();
                 PrePrepareMessageService.procPPMsg(rcvMsg, validatorAddr);
             }
             // 如果socket中接受到的消息为 Prepare 类型
             else if (msgType.equals(Const.PM)) {
-                out.writeUTF("接收到你发来的准备消息");
-                out.flush();
-                socket.close();
+                NetUtil.write(dataOutputStream, "接收到你发送的 Prepare 消息");
+//                socket.close();
                 logger.info("接收到准备消息");
                 PrepareMessageService.procPMsg(rcvMsg, validatorAddr);
             }
             // 如果socket中接受到的消息为 commit 类型
             else if (msgType.equals(Const.CMTM)) {
-                out.writeUTF("接收到你发来的commit消息");
-                out.flush();
-                socket.close();
+                NetUtil.write(dataOutputStream, "接收到你发送的 Commit 消息");
+//                socket.close();
                 logger.info("接收到commit消息");
                 cmtms.procCMTM(rcvMsg, validatorAddr);
             }
             else {
-                out.writeUTF("未知的 msgType 类型");
-                out.flush();
-                socket.close();
+                NetUtil.write(dataOutputStream, "未知的 msgType 类型");
+//                socket.close();
                 logger.error("未知的 msgType 类型");
             }
 
 //            out.writeUTF("\n连接结束");
 //            out.flush();
-//            socket.close();
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
